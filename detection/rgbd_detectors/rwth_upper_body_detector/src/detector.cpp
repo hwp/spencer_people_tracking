@@ -140,6 +140,7 @@ void Detector::ComputeFreespace(const Camera& camera,
      Vector<double> kernel = AncillaryMethods::getGaussian1D(2,3);
      occ_map = AncillaryMethods::conv1D(occ_map, kernel, false);
      occ_map = AncillaryMethods::conv1D(occ_map, kernel, true);
+     // TODO: use 2D convolution instead of two 1D convolutions
 
 // occ_map.WriteToTXT("after.txt");
  

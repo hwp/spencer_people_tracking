@@ -187,10 +187,18 @@ void callback(const ImageConstPtr &depth, const GroundPlane::ConstPtr &gp, const
     // Get depth image as matrix
     cv_depth_ptr = cv_bridge::toCvCopy(depth);
     img_depth_ = cv_depth_ptr->image;
+
+    ROS_DEBUG_STREAM_THROTTLE(10, "depth image encoding: " << cv_depth_ptr->encoding);
+
     Matrix<double> matrix_depth(info->width, info->height);
-    for (int r = 0;r < 480;r++){
-        for (int c = 0;c < 640;c++) {
-            matrix_depth(c, r) = img_depth_.at<float>(r,c);
+    for (int r = 0; r < info->height; r++){
+        for (int c = 0; c < info->width; c++) {
+            if (img_depth_.depth() == CV_16U) {
+                matrix_depth(c, r) = img_depth_.at<uint16_t>(r,c) / 1000.0;
+            }
+            else {
+                matrix_depth(c, r) = img_depth_.at<float>(r,c);
+            }
         }
     }
 
@@ -205,7 +213,7 @@ void callback(const ImageConstPtr &depth, const GroundPlane::ConstPtr &gp, const
 
     // Detect upper bodies
     Camera camera(K,R,t,GP);
-    PointCloud point_cloud(camera, matrix_depth);
+    PointCloud point_cloud(camera, matrix_depth); // point cloud in camera coordinate
     Vector<Vector< double > > detected_bounding_boxes;
     detector->ProcessFrame(camera, matrix_depth, point_cloud, upper_body_template, detected_bounding_boxes);
 
@@ -347,7 +355,7 @@ int main(int argc, char **argv)
     private_node_handle_.param("ground_plane", topic_gp, string("/ground_plane"));
 
     topic_color_image = cam_ns + "/rgb/image_raw";
-    string topic_depth_image = cam_ns + "/depth/image_rect";
+    string topic_depth_image = cam_ns + "/depth/image_raw";
     string topic_camera_info = cam_ns + "/depth/camera_info";
 
     // New parameters for SPENCER
@@ -417,7 +425,6 @@ int main(int argc, char **argv)
                                                                                        subscriber_camera_info);
     // Register one callback for all topics
     sync.registerCallback(boost::bind(&callback, _1, _2, _3));
-
 
     // Create publisher
     private_node_handle_.param("upper_body_detections", pub_topic_ubd, string("/upper_body_detector/detections"));

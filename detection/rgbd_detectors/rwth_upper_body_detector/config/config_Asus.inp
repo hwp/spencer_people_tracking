@@ -16,6 +16,7 @@ region_size_threshold = 10
 # parameteters for occupancy Map computation
 
 # these parameter define the number of bins for the occupancy histogram
+# note: # of bins per meter on axis
 freespace_scaleZ = 20; 
 freespace_scaleX = 20;
 
@@ -23,7 +24,7 @@ freespace_minX = -3;
 freespace_minZ = 0;
 freespace_maxX = 3;
 freespace_maxZ = 7;
-freespace_threshold = 500
+freespace_threshold = 100       # note: this parameter is resolution dependent
 freespace_max_depth_to_cons = 7
 
 #====================================
